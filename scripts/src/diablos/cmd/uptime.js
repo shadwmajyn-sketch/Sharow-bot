@@ -1,0 +1,38 @@
+function formatDuration(totalSeconds) {
+  const seconds = totalSeconds % 60;
+  const minutes = Math.floor(totalSeconds / 60) % 60;
+  const hours = Math.floor(totalSeconds / 3600) % 24;
+  const days = Math.floor(totalSeconds / 86400);
+  return [
+    days ? `${days} يوم` : null,
+    hours ? `${hours} ساعة` : null,
+    minutes ? `${minutes} دقيقة` : null,
+    `${seconds} ثانية`,
+  ]
+    .filter(Boolean)
+    .join("، ");
+}
+
+export default {
+  name: "uptime",
+  aliases: ["ابتيم", "ابتime", "حالة"],
+  description: "عرض حالة البوت ومدة تشغيله",
+  async execute({ api, send, state, threadId, runtime }) {
+    const protection = await runtime.protection.status(threadId);
+    const memoryMb = Math.round(process.memoryUsage().rss / 1024 / 1024);
+    await send(
+      [
+        `الاسم: ${runtime.config.botName}`,
+        `حساب فيسبوك: ${api.getCurrentUserID()}`,
+        `الحالة: متصل`,
+        `مدة التشغيل: ${formatDuration(Math.floor(process.uptime()))}`,
+        `البادئة هنا: ${state.getPrefix(threadId)}`,
+        `نطاق العمل: المجموعات التي ينضم إليها البوت`,
+        `الحماية: ${protection.enabled ? "مفعلة" : "متوقفة"}`,
+        `تكرار بيس النشط: ${runtime.baseLoops.has(threadId) ? "نعم" : "لا"}`,
+        `تكرار devil النشط: ${runtime.devilLoops.has(threadId) ? "نعم" : "لا"}`,
+        `استخدام الذاكرة: ${memoryMb} MB`,
+      ].join("\n"),
+    );
+  },
+};
